@@ -130,12 +130,10 @@ public class Player {
         sprite = new Sprite(idleAnimation.getKeyFrame(0));
         sprite.setPosition(x, y);
     }
-    //SE ENCARGA DE ACTUALIZAR LA LOGICA DEL JUEGO
-    public void update(float deltaTime) {
-    	
-    	velocidad.y -= 9.8f * deltaTime;//GRAVEDAD ESTA EN 9.8
-        stateTime += deltaTime;
-        // Actualiza la animación actual
+    public void update(float deltaTime, Mapa mapa) {
+        velocidad.y -= 9.8f * deltaTime; // GRAVEDAD ESTA EN 9.8
+        stateTime += deltaTime; // Actualiza la animación actual
+
         if (isJumping) {
             currentAnimation = jumpAnimation;
         } else if (isCrouching) {
@@ -149,8 +147,22 @@ public class Player {
         } else {
             currentAnimation = idleAnimation;
         }
+
         rect.x += velocidad.x * deltaTime;
         rect.y += velocidad.y * deltaTime;
+
+        Rectangle rectangle = new Rectangle(rect.x, rect.y, rect.width, rect.height);
+        if (mapa.isCollision(rectangle)) {
+            // Manejar la colisión
+            if (velocidad.y > 0) {
+                rect.y = rectangle.y - rect.height;
+                velocidad.y = 0;
+            } else if (velocidad.y < 0) {
+                rect.y = rectangle.y + rectangle.height;
+                velocidad.y = 0;
+            }
+            // También puedes manejar colisiones horizontales si es necesario
+        }
     }
 
     //SE ENCARGA DE RENDERIZAR LA IMAGEN EN PANTALLA

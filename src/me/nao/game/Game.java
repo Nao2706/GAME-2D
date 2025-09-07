@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Game extends ApplicationAdapter {
+	private Mapa mapa;
     private OrthographicCamera camera;
     private SpriteBatch batch;
     private Player player;
@@ -17,6 +18,7 @@ public class Game extends ApplicationAdapter {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
         batch = new SpriteBatch();
+        mapa = new Mapa("ruta.tmx");
         player = new Player(100, 100, 32, 32);
         plataformas = new Platform[3];
         plataformas[0] = new Platform(0, 400, 800, 20);
@@ -29,8 +31,10 @@ public class Game extends ApplicationAdapter {
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         camera.update();
+        mapa.render(batch, camera);//RENDERIZAR MAPA
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+        
         for (Platform plataforma : plataformas) {
             plataforma.draw(batch);
         }
@@ -52,7 +56,7 @@ public class Game extends ApplicationAdapter {
             player.setVelocidad(player.getVelocidad().x, -200);
         }
 
-        player.update(Gdx.graphics.getDeltaTime());
+        player.update(Gdx.graphics.getDeltaTime(),mapa);
 
         // Detección de colisiones
         for (Platform plataforma : plataformas) {
