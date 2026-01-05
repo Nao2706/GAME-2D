@@ -13,14 +13,14 @@ public class Platform {
     private Rectangle rect;
     private Sprite sprite;
     private Vector2 velocidad;
-    private boolean esDañina;
+    private boolean esDaÃ±ina;
     private Vector2 puntoA;
     private Vector2 puntoB;
 
     public Platform(float x, float y, float width, float height) {
         rect = new Rectangle(x, y, width, height);
         velocidad = new Vector2(0, 0);
-        esDañina = false;
+        esDaÃ±ina = false;
         puntoA = new Vector2(x, y);
         puntoB = new Vector2(x + 100, y); // ejemplo de movimiento horizontal
 
@@ -50,12 +50,12 @@ public class Platform {
         this.velocidad = velocidad;
     }
 
-    public void setesDañina(boolean esDañina) {
-        this.esDañina = esDañina;
+    public void setesDaÃ±ina(boolean esDaÃ±ina) {
+        this.esDaÃ±ina = esDaÃ±ina;
     }
 
-    public boolean esDañina() {
-        return esDañina;
+    public boolean esDaÃ±ina() {
+        return esDaÃ±ina;
     }
 
     public Rectangle getRect() {

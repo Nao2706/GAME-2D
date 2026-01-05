@@ -25,32 +25,17 @@ public class Juego extends ApplicationAdapter {
     public void render() {
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         camara.update();
         shapeRenderer.setProjectionMatrix(camara.combined);
-
         shapeRenderer.begin(ShapeType.Filled);
         shapeRenderer.setColor(Color.RED);
+        personaje.update();
         shapeRenderer.rect(personaje.getX(), personaje.getY(), 50, 50);
         shapeRenderer.end();
-
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)) {
-            personaje.moverArriba();
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)) {
-            personaje.moverAbajo();
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)) {
-            personaje.moverIzquierda();
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)) {
-            personaje.moverDerecha();
-        }
     }
 
     @Override
     public void dispose() {
         shapeRenderer.dispose();
     }
-	
 }
