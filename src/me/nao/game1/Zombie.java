@@ -2,11 +2,13 @@ package me.nao.game1;
 
 import com.badlogic.gdx.graphics.Color; // te falta este
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
 public class Zombie {
     private Rectangle hitbox;
-    private float velZombie;
+   
+	private float velZombie;
     final int ANCHO_PANTALLA = 800;
     final int ALTO_PANTALLA = 400;
     final int GROSOR_PARED = 20;
@@ -23,17 +25,16 @@ public class Zombie {
     
     public Rectangle getHitbox() { return hitbox; }
     
-    public void caminarHacia(Player p, float delta, boolean qteActivo) {
-        if(qteActivo) return; // congelado en QTE
+    public void caminarHacia(Player player, float delta, boolean congelado, float limiteDerecho) {
+        if(congelado) return; // solo se congela el que te está tocando
         
-        float dir = p.getHitbox().x - this.hitbox.x;
-        if(Math.abs(dir) > 5) {
-            if(dir > 0) hitbox.x += velZombie * delta;
-            else hitbox.x -= velZombie * delta;
+        float velocidad = velZombie * delta;
+        if(hitbox.x < player.getHitbox().x) {
+            hitbox.x += velocidad;
+        } else {
+            hitbox.x -= velocidad;
         }
-        if(hitbox.x < GROSOR_PARED) hitbox.x = GROSOR_PARED;
-        if(hitbox.x > ANCHO_PANTALLA - GROSOR_PARED - hitbox.width) 
-            hitbox.x = ANCHO_PANTALLA - GROSOR_PARED - hitbox.width;
+        hitbox.x = MathUtils.clamp(hitbox.x, GROSOR_PARED, limiteDerecho - hitbox.width);
     }
     
     public void dibujar(ShapeRenderer shape) {

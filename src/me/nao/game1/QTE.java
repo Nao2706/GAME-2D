@@ -3,6 +3,7 @@ package me.nao.game1;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -26,9 +27,7 @@ public class QTE {
     private boolean usarBarrasApiladas = false;
     @SuppressWarnings("unused")
 	private boolean decaeProgreso = true;
-    @SuppressWarnings("unused")
 	private float playerQteChargeSpeed = 0.20f;
-    @SuppressWarnings("unused")
 	private float zombieQteChargeSpeed = 1f;
     @SuppressWarnings("unused")
 	private float decaySpeed = 0.08f;
@@ -47,15 +46,18 @@ public class QTE {
     private Array<Integer> secuencia = new Array<>();
    
     private BitmapFont font;
+    private ShapeRenderer shapeQTE; // NUEVO
     
     // Pool de teclas disponibles
     private final int[] POOL_TECLAS = {
-        Input.Keys.A, Input.Keys.D, Input.Keys.W, Input.Keys.S
+        Input.Keys.A, Input.Keys.D
+//        , Input.Keys.W, Input.Keys.S
     };
     
     public QTE() {
         font = new BitmapFont(); // crear 1 vez
         font.getData().setScale(1.5f); // tamaño decente
+        shapeQTE = new ShapeRenderer(); // NUEVO
     }
     
     public void setPlayerQteChargeSpeed(float speed) { playerQteChargeSpeed = speed; }
@@ -68,69 +70,91 @@ public class QTE {
         zombieQteChargeSpeed = 1f / segundos;
     }
     
-    public void dibujar(ShapeRenderer shape, SpriteBatch batch, Player p, Zombie z) {
+    
+    
+    public void dibujar(SpriteBatch batch, Player p, Zombie z, OrthographicCamera camera,int cantidad) {
         if(!activo) return;
-        if(usarBarrasApiladas) dibujarApiladas(shape, batch, p, z);
-        else dibujarSobrepuestas(shape, batch, p, z);
+ 
+        shapeQTE.setProjectionMatrix(camera.combined); // NUEVO: usa la cámara
+        
+        if(usarBarrasApiladas) dibujarApiladas(batch, p, z,cantidad);
+        else dibujarSobrepuestas(batch, p, z,cantidad);
     }
     
+    public void dispose() {
+        shapeQTE.dispose(); // <- NO OLVIDES ESTO
+        font.dispose();
+    }
+//    private void dibujarApiladas(ShapeRenderer shape, SpriteBatch batch, Player p, Zombie z) {
+//        // Centro en coordenadas de MUNDO
+//        float xCentro = (p.getHitbox().x + p.getHitbox().width/2 + z.getHitbox().x + z.getHitbox().width/2) / 2f;
+//        float yBase = Math.max(p.getHitbox().y + p.getHitbox().height, z.getHitbox().y + z.getHitbox().height) + 65 - 30f;
+//        
+//        
+//        // dibuja barras con barraX...
+//        float espacio = 3;
+//        float barraX = xCentro - anchoBarra/2;
+//        
+//        // Fondo negro
+//        shape.setColor(Color.DARK_GRAY);
+//        shape.rect(barraX - 2, yBase - 2, anchoBarra + 4, altoBarra * 2 + espacio + 4);
+//        
+//        // Barra player arriba
+//        shape.setColor(Color.CYAN);
+//        int pixelsPlayer = (int)(anchoBarra * progresoPlayer + 0.5f);
+//        shape.rect(barraX, yBase + altoBarra + espacio, pixelsPlayer, altoBarra);
+//        
+//        // Barra zombie abajo  
+//        shape.setColor(Color.RED);
+//        int pixelsZombie = (int)(anchoBarra * timer + 0.5f);
+//        shape.rect(barraX, yBase, pixelsZombie, altoBarra);
+//        
+//        
+//        batch.begin();
+//        String letra = Input.Keys.toString(teclaActual);
+//        font.setColor(Color.BLACK);
+//        GlyphLayout layout = new GlyphLayout(font, letra);
+//        
+//        float offsetX = 0f; // ya no necesitas -125
+//        float offsetY = 15f;
+//        
+//        float xLetra = barraX + anchoBarra/2 - layout.width/2 + offsetX;
+//        float yLetra = yBase + altoBarra * 2 + espacio + layout.height + offsetY;
+//        
+//        font.draw(batch, letra, xLetra, yLetra);
+//        batch.end();
+//    }
     
-    private void dibujarApiladas(ShapeRenderer shape, SpriteBatch batch, Player p, Zombie z) {
-        // Centro en coordenadas de MUNDO
-        float xCentro = (p.getHitbox().x + p.getHitbox().width/2 + z.getHitbox().x + z.getHitbox().width/2) / 2f;
-        float yBase = Math.max(p.getHitbox().y + p.getHitbox().height, z.getHitbox().y + z.getHitbox().height) + 65 - 30f;
-        
-        
-        // dibuja barras con barraX...
-        float espacio = 3;
+    private void dibujarSobrepuestas(SpriteBatch batch, Player p, Zombie z,int cantidad) {
+        // 1. Calcula centro
+//        float xCentro = (p.getHitbox().x + p.getHitbox().width/2 + z.getHitbox().x + z.getHitbox().width/2) / 2f;
+//        float yBase = Math.max(p.getHitbox().y + p.getHitbox().height, z.getHitbox().y + z.getHitbox().height) + 35f;
+    	float xCentro = p.getHitbox().x + p.getHitbox().width/2;
+    	float yBase = p.getHitbox().y + p.getHitbox().height + 35f;
+    	   
         float barraX = xCentro - anchoBarra/2;
         
-        // Fondo negro
-        shape.setColor(Color.DARK_GRAY);
-        shape.rect(barraX - 2, yBase - 2, anchoBarra + 4, altoBarra * 2 + espacio + 4);
+        // 2. Dibuja barras con ShapeRenderer propio
+        shapeQTE.begin(ShapeRenderer.ShapeType.Filled);
         
-        // Barra player arriba
-        shape.setColor(Color.CYAN);
+        // Fondo
+        shapeQTE.setColor(Color.DARK_GRAY);
+        shapeQTE.rect(barraX - 2, yBase - 2, anchoBarra + 4, altoBarra + 4);
+        
+        // Barra player = cyan
+      
+        shapeQTE.setColor(cantidad == 1 ? Color.CYAN : Color.YELLOW);
         int pixelsPlayer = (int)(anchoBarra * progresoPlayer + 0.5f);
-        shape.rect(barraX, yBase + altoBarra + espacio, pixelsPlayer, altoBarra);
+        shapeQTE.rect(barraX, yBase, pixelsPlayer, altoBarra);
         
-        // Barra zombie abajo  
-        shape.setColor(Color.RED);
+        // Barra zombie = roja, sobrepuesta
+        shapeQTE.setColor(cantidad == 1 ? Color.YELLOW : Color.RED);
         int pixelsZombie = (int)(anchoBarra * timer + 0.5f);
-        shape.rect(barraX, yBase, pixelsZombie, altoBarra);
+        shapeQTE.rect(barraX, yBase, pixelsZombie, altoBarra);
         
+        shapeQTE.end(); // <- CIERRA AQUÍ
         
-        batch.begin();
-        String letra = Input.Keys.toString(teclaActual);
-        font.setColor(Color.BLACK);
-        GlyphLayout layout = new GlyphLayout(font, letra);
-        
-        float offsetX = 0f; // ya no necesitas -125
-        float offsetY = 15f;
-        
-        float xLetra = barraX + anchoBarra/2 - layout.width/2 + offsetX;
-        float yLetra = yBase + altoBarra * 2 + espacio + layout.height + offsetY;
-        
-        font.draw(batch, letra, xLetra, yLetra);
-        batch.end();
-    }
-    
-
-    
-    
-    private void dibujarSobrepuestas(ShapeRenderer shape, SpriteBatch batch, Player p, Zombie z) {
-        // 1. Calcula centro base SIN offset, cada frame desde 0
-        float xCentro = (p.getHitbox().x + p.getHitbox().width/2 + z.getHitbox().x + z.getHitbox().width/2) / 2f;
-        float yBase = Math.max(p.getHitbox().y + p.getHitbox().height, z.getHitbox().y + z.getHitbox().height) + 65 - 30f;
-        
-        float barraX = xCentro - anchoBarra/2;
-        
-        // dibuja barras con barraX...
-        shape.setColor(Color.DARK_GRAY);
-        shape.rect(barraX - 2, yBase - 2, anchoBarra + 4, altoBarra + 4);
-        // etc...
-        
-        // 2. Calcula posición de letra en variable NUEVA
+        // 3. Dibuja letra con batch
         batch.begin();
         String letra = Input.Keys.toString(teclaActual);
         font.setColor(Color.BLACK);
@@ -139,7 +163,6 @@ public class QTE {
         float offsetX = -125f; // tu valor que funciona
         float offsetY = 15f;
         
-        // NUNCA toques xCentro. Usa una variable nueva
         float xLetra = barraX + anchoBarra/2 - layout.width/2 + offsetX;
         float yLetra = yBase + altoBarra + layout.height + offsetY;
         
@@ -147,10 +170,119 @@ public class QTE {
         batch.end();
     }
     
+    private void dibujarApiladas(SpriteBatch batch, Player p, Zombie z,int cantidad) {
+//        float xCentro = (p.getHitbox().x + p.getHitbox().width/2 + z.getHitbox().x + z.getHitbox().width/2) / 2f;
+//        float yBase = Math.max(p.getHitbox().y + p.getHitbox().height, z.getHitbox().y + z.getHitbox().height) + 35f;
+    	float xCentro = p.getHitbox().x + p.getHitbox().width/2;
+    	float yBase = p.getHitbox().y + p.getHitbox().height + 35f;
+        float barraX = xCentro - anchoBarra/2;
+        float espacio = 3;
+        
+        shapeQTE.begin(ShapeRenderer.ShapeType.Filled);
+        
+        // Fondo
+        shapeQTE.setColor(Color.DARK_GRAY);
+        shapeQTE.rect(barraX - 2, yBase - 2, anchoBarra + 4, altoBarra * 2 + espacio + 4);
+        
+        // Player arriba
+        shapeQTE.setColor(cantidad == 1 ? Color.CYAN : Color.YELLOW);
+        int pixelsPlayer = (int)(anchoBarra * progresoPlayer + 0.5f);
+        shapeQTE.rect(barraX, yBase + altoBarra + espacio, pixelsPlayer, altoBarra);
+        
+        // Zombie abajo
+        shapeQTE.setColor(cantidad == 1 ? Color.YELLOW : Color.RED);
+        int pixelsZombie = (int)(anchoBarra * timer + 0.5f);
+        shapeQTE.rect(barraX, yBase, pixelsZombie, altoBarra);
+        
+        shapeQTE.end();
+        
+        // Letra
+        batch.begin();
+        String letra = Input.Keys.toString(teclaActual);
+        font.setColor(Color.BLACK);
+        GlyphLayout layout = new GlyphLayout(font, letra);
+        float xLetra = barraX + anchoBarra/2 - layout.width/2;
+        float yLetra = yBase + altoBarra * 2 + espacio + layout.height + 15f;
+        font.draw(batch, letra, xLetra, yLetra);
+        batch.end();
+    }
     
+//    public void actualizar(float delta) {
+//        if(!activo) return;
+//        
+//        timer += delta * 0.25f; // zombie avanza
+//        
+//        if(Gdx.input.isKeyJustPressed(teclaActual)) {
+//            progresoPlayer += 0.15f; // sube barra
+//            
+//            // 2. Cambia a la otra tecla del combo
+//            alternar = !alternar;
+//            teclaActual = alternar ? tecla2 : tecla1;
+//        }
+//        
+//        // Penalización si presiona tecla incorrecta
+//        if(Gdx.input.isKeyJustPressed(tecla1) && teclaActual != tecla1 ||
+//           Gdx.input.isKeyJustPressed(tecla2) && teclaActual != tecla2) {
+//            progresoPlayer -= 0.08f;
+//        }
+//        
+//        progresoPlayer = MathUtils.clamp(progresoPlayer, 0f, 1f);
+//        
+//        if(timer >= 1f && progresoPlayer < 1f) activo = false;
+//        if(progresoPlayer >= 1f) activo = false;
+//    }
     
+    public void actualizar(float delta) {
+        if(!activo) return;
+        
+        timer += delta * zombieQteChargeSpeed; // <- usa la variable
+        
+        if(Gdx.input.isKeyJustPressed(teclaActual)) {
+            progresoPlayer += playerQteChargeSpeed; // <- usa la variable
+            
+            alternar = !alternar;
+            teclaActual = alternar ? tecla2 : tecla1;
+        }
+        
+        // Penalización si presiona tecla incorrecta
+        if(Gdx.input.isKeyJustPressed(tecla1) && teclaActual != tecla1 ||
+           Gdx.input.isKeyJustPressed(tecla2) && teclaActual != tecla2) {
+            progresoPlayer -= playerQteChargeSpeed * 0.5f; // penalidad = 50% de lo que sube
+        }
+        
+        progresoPlayer = MathUtils.clamp(progresoPlayer, 0f, 1f);
+        
+        if(timer >= 1f && progresoPlayer < 1f) activo = false;
+        if(progresoPlayer >= 1f) activo = false;
+    }
     
+    public void iniciar() { 
+        activo = true; 
+        timer = 0; 
+        progresoPlayer = 0; 
+//        generarSecuencia(8);
+        
+        
+        IntArray pool = new IntArray(POOL_TECLAS);
+        pool.shuffle(); // mezcla
+        tecla1 = pool.get(0);
+        tecla2 = pool.get(1);
+        
+        teclaActual = tecla1; // empieza con la primera
+    }
     
+    public void resetear() { 
+        activo = false; 
+        timer = 0; 
+        progresoPlayer = 0; 
+        secuencia.clear();
+    }
+    
+    public boolean zombieGano() { return timer >= 1f && progresoPlayer < 1f; }
+    public boolean jugadorGano() { return progresoPlayer >= 1f; }
+    public boolean isActivo() { return activo; }
+    
+}   
 //    private void dibujarSobrepuestas(ShapeRenderer shape, SpriteBatch batch, Player p, Zombie z) {
 //        float xMedio = (p.getHitbox().x + z.getHitbox().x) / 2 + 30;
 //        float yMedio = Math.max(p.getHitbox().y, z.getHitbox().y) + 65;
@@ -221,30 +353,7 @@ public class QTE {
 //    GAME OVER
 //    1X: 546.9343 Y: 173.5
     
-    public void actualizar(float delta) {
-        if(!activo) return;
-        
-        timer += delta * 0.25f; // zombie avanza
-        
-        if(Gdx.input.isKeyJustPressed(teclaActual)) {
-            progresoPlayer += 0.15f; // sube barra
-            
-            // 2. Cambia a la otra tecla del combo
-            alternar = !alternar;
-            teclaActual = alternar ? tecla2 : tecla1;
-        }
-        
-        // Penalización si presiona tecla incorrecta
-        if(Gdx.input.isKeyJustPressed(tecla1) && teclaActual != tecla1 ||
-           Gdx.input.isKeyJustPressed(tecla2) && teclaActual != tecla2) {
-            progresoPlayer -= 0.08f;
-        }
-        
-        progresoPlayer = MathUtils.clamp(progresoPlayer, 0f, 1f);
-        
-        if(timer >= 1f && progresoPlayer < 1f) activo = false;
-        if(progresoPlayer >= 1f) activo = false;
-    }
+  
     
 //    public void actualizar(float delta) {
 //        if(!activo) return;
@@ -316,29 +425,5 @@ public class QTE {
 //        teclaActual = secuencia.first();
 //    }
     
-    public void iniciar() { 
-        activo = true; 
-        timer = 0; 
-        progresoPlayer = 0; 
-//        generarSecuencia(8);
-        
-        
-        IntArray pool = new IntArray(POOL_TECLAS);
-        pool.shuffle(); // mezcla
-        tecla1 = pool.get(0);
-        tecla2 = pool.get(1);
-        
-        teclaActual = tecla1; // empieza con la primera
-    }
-    
-    public void resetear() { 
-        activo = false; 
-        timer = 0; 
-        progresoPlayer = 0; 
-        secuencia.clear();
-    }
-    
-    public boolean zombieGano() { return timer >= 1f && progresoPlayer < 1f; }
-    public boolean jugadorGano() { return progresoPlayer >= 1f; }
-    public boolean isActivo() { return activo; }
-}
+  
+
