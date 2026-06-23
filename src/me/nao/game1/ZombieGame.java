@@ -292,8 +292,9 @@ public class ZombieGame extends ApplicationAdapter {
         
         // 2. Lógica player + QTE
         if(!qte.isActivo()) {
-            player.mover(delta, 400 * delta, GROSOR_PARED, (int)(mapWidth - GROSOR_PARED - player.getHitbox().width),ALTO_SUELO);
+//            player.mover(delta, 400 * delta, GROSOR_PARED, (int)(mapWidth - GROSOR_PARED - player.getHitbox().width),ALTO_SUELO);
             player.aplicarGravedad(delta, GRAVEDAD, ALTO_SUELO);
+            player.actualizarApuntado();
             
             Array<Zombie> tocando = new Array<>();
             for(Zombie z : zombies) if(player.getHitbox().overlaps(z.getHitbox())) tocando.add(z);
@@ -369,10 +370,10 @@ public class ZombieGame extends ApplicationAdapter {
         
         shape.begin(ShapeRenderer.ShapeType.Filled);
         dibujarEscenario();
-        player.dibujar(shape);
+//        player.dibujar(shape);
         for(Zombie z : zombies) z.dibujar(shape);
         if(qte.isActivo()) qte.dibujar(batch, player, zombies.first(), camera,zcantidad); // <- DIBUJA FUERA
-        shape.end(); // <- CIERRA AQUÍ
+        shape.end(); // <- CIERRA AQUÍ NO PONER NADA DESPUES DE ESTO SINO DA ERROR
         
        
     }
