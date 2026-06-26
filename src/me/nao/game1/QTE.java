@@ -155,7 +155,7 @@ public class QTE {
         shapeQTE.end(); // <- CIERRA AQUÍ
         
         // 3. Dibuja letra con batch
-        batch.begin();
+//        batch.begin();
         String letra = Input.Keys.toString(teclaActual);
         font.setColor(Color.BLACK);
         GlyphLayout layout = new GlyphLayout(font, letra);
@@ -167,7 +167,7 @@ public class QTE {
         float yLetra = yBase + altoBarra + layout.height + offsetY;
         
         font.draw(batch, letra, xLetra, yLetra);
-        batch.end();
+//        batch.end();
     }
     
     private void dibujarApiladas(SpriteBatch batch, Player p, Zombie z,int cantidad) {
@@ -197,14 +197,14 @@ public class QTE {
         shapeQTE.end();
         
         // Letra
-        batch.begin();
+//        batch.begin();
         String letra = Input.Keys.toString(teclaActual);
         font.setColor(Color.BLACK);
         GlyphLayout layout = new GlyphLayout(font, letra);
         float xLetra = barraX + anchoBarra/2 - layout.width/2;
         float yLetra = yBase + altoBarra * 2 + espacio + layout.height + 15f;
         font.draw(batch, letra, xLetra, yLetra);
-        batch.end();
+//        batch.end();
     }
     
 //    public void actualizar(float delta) {

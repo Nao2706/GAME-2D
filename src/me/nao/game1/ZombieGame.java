@@ -42,8 +42,8 @@ public class ZombieGame extends ApplicationAdapter {
         zombies = new Array<>();
         zombies.add(new Zombie(700, ALTO_SUELO));
         zombies.add(new Zombie(950, ALTO_SUELO)); // zombi 2 para probar
-        zombies.get(0).setVelocidadZombie(20);
-        zombies.get(1).setVelocidadZombie(20);
+        zombies.get(0).setVelocidadZombie(1);
+        zombies.get(1).setVelocidadZombie(1);
         
         
         qte = new QTE();
@@ -293,6 +293,7 @@ public class ZombieGame extends ApplicationAdapter {
         // 2. Lógica player + QTE
         if(!qte.isActivo()) {
 //            player.mover(delta, 400 * delta, GROSOR_PARED, (int)(mapWidth - GROSOR_PARED - player.getHitbox().width),ALTO_SUELO);
+        	player.mover(delta, GROSOR_PARED, (int)(mapWidth - GROSOR_PARED - player.getHitbox().width), ALTO_SUELO);
             player.aplicarGravedad(delta, GRAVEDAD, ALTO_SUELO);
             player.actualizarApuntado();
             
@@ -364,18 +365,33 @@ public class ZombieGame extends ApplicationAdapter {
         shape.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
         
-        // 4. Dibujado
+//        // 4. Dibujado
+//        Gdx.gl20.glClearColor(0.9f, 0.9f, 0.9f, 1);
+//        Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
+//        
+//        shape.begin(ShapeRenderer.ShapeType.Filled);
+//        dibujarEscenario();
+////        player.dibujar(shape);shape
+//        player.dibujar(batch,ALTO_SUELO);
+//        for(Zombie z : zombies) z.dibujar(shape);
+//        if(qte.isActivo()) qte.dibujar(batch, player, zombies.first(), camera,zcantidad); // <- DIBUJA FUERA
+//        shape.end(); // <- CIERRA AQUÍ NO PONER NADA DESPUES DE ESTO SINO DA ERROR
+        
+     // 4. Dibujado
         Gdx.gl20.glClearColor(0.9f, 0.9f, 0.9f, 1);
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        
+
+        // 1. Dibuja todo lo de ShapeRenderer primero
         shape.begin(ShapeRenderer.ShapeType.Filled);
         dibujarEscenario();
-//        player.dibujar(shape);
         for(Zombie z : zombies) z.dibujar(shape);
-        if(qte.isActivo()) qte.dibujar(batch, player, zombies.first(), camera,zcantidad); // <- DIBUJA FUERA
-        shape.end(); // <- CIERRA AQUÍ NO PONER NADA DESPUES DE ESTO SINO DA ERROR
-        
-       
+        shape.end(); // <- CIERRA AQUÍ
+
+        // 2. Ahora abre SpriteBatch para el player y QTE
+        batch.begin();
+        player.dibujar(batch, ALTO_SUELO);
+        if(qte.isActivo()) qte.dibujar(batch, player, zombies.first(), camera, zcantidad);
+        batch.end(); // <- CIERRA AQUÍ
     }
     
     

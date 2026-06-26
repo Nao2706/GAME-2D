@@ -3,18 +3,18 @@ package me.nao.game1;
 //Player.java
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.graphics.Color;
+//import com.badlogic.gdx.Input.Keys;
+//import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+//import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
 public class Player {
-    private Animation<TextureRegion> animIdle, animCorrer;
+    private Animation<TextureRegion> animIdle, animPreCorrer, animCorrer;
     private Texture spriteSheet; // <- FALTABA ESTE
     private Rectangle hitbox;
     private float velY;
@@ -31,27 +31,61 @@ public class Player {
         hitbox = new Rectangle(x, y, 40, 40);
         velY = 0;
 
-        spriteSheet = new Texture("sprites/stickman.png"); // assets/sprites/stickman.png
+        spriteSheet = new Texture("C:\\Users\\Fernando\\Downloads\\stickman.png");
 
+        // 32 ancho, 48 alto por frame
         TextureRegion[][] tmp = TextureRegion.split(spriteSheet, 32, 48);
-        animIdle = new Animation(0.15f, tmp[0][0], tmp[0][1], tmp[0][2], tmp[0][3]);
-        animCorrer = new Animation(0.08f, tmp[1][0], tmp[1][1], tmp[1][2], tmp[1][3], tmp[1][4], tmp[1][5]);
+
+        // Idle = 1,2,3,4,5 → tmp[0][0] a tmp[0][4]
+        animIdle = new Animation<>(0.15f, tmp[0][0], tmp[0][1], tmp[0][2], tmp[0][3], tmp[0][4]);
+
+        // PreCorrer = 6,7,8,9,10 → tmp[0][5], tmp[0][6], tmp[0][7], tmp[1][0], tmp[1][1]
+        animPreCorrer = new Animation<>(0.08f, tmp[0][5], tmp[0][6], tmp[0][7], tmp[1][0], tmp[1][1]);
+
+        // Correr = 11,12 → tmp[1][2], tmp[1][3]
+        animCorrer = new Animation<>(0.08f, tmp[1][2], tmp[1][3]);
+
         animIdle.setPlayMode(Animation.PlayMode.LOOP);
+        animPreCorrer.setPlayMode(Animation.PlayMode.NORMAL); // NO loop, solo 1 vez
         animCorrer.setPlayMode(Animation.PlayMode.LOOP);
     }
 
     public void actualizar(float delta, int limiteIzq, int limiteDer, int ALTO_SUELO) {
-        stateTime += delta; // <- actualiza animación
+        stateTime += delta;
         mover(delta, limiteIzq, limiteDer, ALTO_SUELO);
         aplicarGravedad(delta, -600, ALTO_SUELO);
         actualizarApuntado();
     }
 
-    public void actualizarApuntado() {
-        if(Gdx.input.isKeyPressed(Input.Keys.UP)) anguloApuntado = 90;
-        else if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) anguloApuntado = 270;
-        else if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) anguloApuntado = 180;
-        else if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) anguloApuntado = 0;
+
+    public void dibujar(SpriteBatch batch, int ALTO_SUELO) {
+        stateTime += Gdx.graphics.getDeltaTime(); // Suma SIEMPRE al inicio
+
+        boolean moviendose = Math.abs(vx) > 5;
+        Animation<TextureRegion> animActual;
+
+        // Lógica de 3 estados: Idle -> PreCorrer -> Correr
+        if (!moviendose) {
+            animActual = animIdle;
+            stateTime = 0; // Solo resetea cuando paras
+        } else {
+            // Si no ha terminado PreCorrer, quédate ahí
+            if (stateTime <= animPreCorrer.getAnimationDuration()) {
+                animActual = animPreCorrer;
+            } else {
+                animActual = animCorrer;
+            }
+        }
+
+        // Loop solo para Idle y Correr. PreCorrer es NORMAL = no loop
+        boolean loop = animActual == animIdle || animActual == animCorrer;
+        TextureRegion frame = animActual.getKeyFrame(stateTime, loop);
+
+        // Flip: hazlo en el frame que vas a dibujar
+        if (!miraDerecha &&!frame.isFlipX()) frame.flip(true, false);
+        if (miraDerecha && frame.isFlipX()) frame.flip(true, false);
+
+        batch.draw(frame, hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 
     public void mover(float delta, int limiteIzq, int limiteDer, int ALTO_SUELO) {
@@ -105,17 +139,25 @@ public class Player {
         }
     }
 
-    // CAMBIO: ahora usa SpriteBatch en vez de ShapeRenderer
-    public void dibujar(SpriteBatch batch) {
-        Animation<TextureRegion> animActual = Math.abs(vx) > 5? animCorrer : animIdle;
-        TextureRegion frame = animActual.getKeyFrame(stateTime, true);
-
-        // Flip según dirección
-        if(!miraDerecha &&!frame.isFlipX()) frame.flip(true, false);
-        if(miraDerecha && frame.isFlipX()) frame.flip(true, false);
-
-        batch.draw(frame, hitbox.x, hitbox.y, 32, 48); // 32x48 = tamaño sprite
+    
+    
+    public void actualizarApuntado() {
+        if(Gdx.input.isKeyPressed(Input.Keys.UP)) anguloApuntado = 90;
+        else if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) anguloApuntado = 270;
+        else if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) anguloApuntado = 180;
+        else if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) anguloApuntado = 0;
     }
+    // CAMBIO: ahora usa SpriteBatch en vez de ShapeRenderer
+//    public void dibujar(SpriteBatch batch) {
+//        Animation<TextureRegion> animActual = Math.abs(vx) > 5? animCorrer : animIdle;
+//        TextureRegion frame = animActual.getKeyFrame(stateTime, true);
+//
+//        // Flip según dirección
+//        if(!miraDerecha &&!frame.isFlipX()) frame.flip(true, false);
+//        if(miraDerecha && frame.isFlipX()) frame.flip(true, false);
+//
+//        batch.draw(frame, hitbox.x, hitbox.y, 32, 48); // 32x48 = tamaño sprite
+//    }
 
     public void dispose() {
         spriteSheet.dispose(); // <- importante para no fugar memoria
