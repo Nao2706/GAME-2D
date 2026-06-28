@@ -4,3 +4,7 @@ TEST OF GAME 2D
 
 
 Happy BirthDay #26 :)
+
+
+Añadir 
+Animaciones , Items , interacciones , plataformas moviles etc.
